@@ -209,7 +209,7 @@ Scope {
                         } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                             const currentTheme = ThemeManager.themes[listView.currentIndex];
                             if (currentTheme) {
-                                root.pendingDir = FileUtils.trimFileProtocol(Directories.configPath) + "/themes/" + currentTheme + "/wallpapers";
+                                root.pendingDir = ThemeManager.themesDir + "/" + currentTheme + "/wallpapers";
                                 GlobalStates.themeSelectorOpen = false;
                                 transitionTimer.start();
                             }

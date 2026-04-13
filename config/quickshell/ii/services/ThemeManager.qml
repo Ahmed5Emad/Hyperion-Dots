@@ -14,7 +14,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property string themesDir: FileUtils.trimFileProtocol(Directories.configPath) + "/themes"
+    readonly property string themesDir: FileUtils.trimFileProtocol(Directories.config) + "/themes"
     property list<string> themes: []
     property var themePreviews: ({})
 
