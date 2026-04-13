@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+
+# hyprtheme: TUI Theme Downloader for Hyperion-Dots
+# Fetches themes from repo branches and installs them locally.
+
+# CONFIGURATION
+REPO_URL="https://github.com/Ahmed5Emad/Hyperion-Dots"
+THEME_DIR="$HOME/.config/themes"
+ICON_DIR="$HOME/.local/share/icons"
+TEMP_DIR="/tmp/hyprtheme-$(date +%s)"
+
+# Ensure directories exist
+mkdir -p "$THEME_DIR" "$ICON_DIR"
+
+echo "Checking for available themes at $REPO_URL..."
+
+# Get all branches from remote starting with 'theme/'
+branches=$(git ls-remote --heads "$REPO_URL" | awk '{print $2}' | sed 's|refs/heads/||' | grep "^theme/")
+
+if [ -z "$branches" ]; then
+    echo "No theme branches found at $REPO_URL."
+    exit 1
+fi
+
+# Selection via fzf
+selected_branch=$(echo "$branches" | fzf --prompt="Select a theme to download: " --height=40% --reverse)
+
+if [ -z "$selected_branch" ]; then
+    echo "No theme selected."
+    exit 0
+fi
+
+# Extract theme name from branch (e.g., theme/Vanta-Black -> Vanta-Black)
+theme_name=$(echo "$selected_branch" | sed 's|theme/||')
+
+echo "Downloading theme: $theme_name..."
+rm -rf "$TEMP_DIR"
+mkdir -p "$TEMP_DIR"
+git clone --depth 1 --branch "$selected_branch" "$REPO_URL" "$TEMP_DIR" || { echo "Failed to clone branch."; exit 1; }
+
+# Install theme files
+echo "Installing theme files to $THEME_DIR/$theme_name..."
+rm -rf "$THEME_DIR/$theme_name"
+mkdir -p "$THEME_DIR/$theme_name"
+cp -r "$TEMP_DIR/"* "$THEME_DIR/$theme_name/"
+# Remove git metadata from installed theme
+rm -rf "$THEME_DIR/$theme_name/.git"
+
+# Extract bundled icons if they exist
+# Look for icons.tar.gz or similar in the root
+icon_archive=$(find "$THEME_DIR/$theme_name" -maxdepth 1 -name "icons.tar.gz" -o -name "icons.tar.xz" | head -n 1)
+
+if [ -n "$icon_archive" ]; then
+    echo "Extracting bundled icons: $(basename "$icon_archive")"
+    tar -xf "$icon_archive" -C "$ICON_DIR"
+    echo "Icons installed to $ICON_DIR"
+fi
+
+# Activation
+echo "Theme downloaded successfully."
+read -p "Would you like to apply '$theme_name' now? [y/N] " confirm
+if [[ $confirm =~ ^[Yy]$ ]]; then
+    APPLY_SCRIPT="$HOME/.config/quickshell/ii/scripts/colors/apply_curated_theme.sh"
+    if [ -f "$APPLY_SCRIPT" ]; then
+        # Pick first wallpaper
+        wallpaper=$(find "$THEME_DIR/$theme_name/wallpapers" -type f | head -n 1)
+        if [ -n "$wallpaper" ]; then
+            echo "Applying theme with wallpaper: $(basename "$wallpaper")"
+            "$APPLY_SCRIPT" --theme-path "$THEME_DIR/$theme_name" --image "$wallpaper" --mode dark
+            echo "Theme applied!"
+        else
+            echo "No wallpaper found in theme. Please apply manually via the UI."
+        fi
+    else
+        echo "Theme apply script not found at $APPLY_SCRIPT. Please apply manually."
+    fi
+fi
+
+# Cleanup
+rm -rf "$TEMP_DIR"
+echo "Done."

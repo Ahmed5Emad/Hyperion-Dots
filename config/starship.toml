@@ -1,0 +1,59 @@
+# Don't print a new line at the start of the prompt
+add_newline = false
+
+# Use the modules in the order you want them to appear
+format = """
+$username$hostname $directory$git_branch$cmd_duration
+$character"""
+
+[username]
+style_user = "bold fg:4"
+style_root = "red bold"
+format = "[$user]($style)"
+disabled = false
+show_always = true
+
+[hostname]
+ssh_only = false
+format = "[•$hostname](bold fg:4)"
+disabled = false
+
+[directory]
+home_symbol = " "
+read_only = "  "
+style = "bold fg:2"
+truncation_length = 2
+truncation_symbol = ".../"
+# Fixed the parentheses here to ensure proper grouping
+format = " [󰉋 $path]($style) "
+
+[directory.substitutions]
+"Desktop" = "  "
+"Documents" = "  "
+"Downloads" = "  "
+"Music" = " 󰎈 "
+"Pictures" = "  "
+"Videos" = "  "
+"GitHub" = " 󰊤 "
+
+[git_branch]
+style = "bold fg:6"
+symbol = "󰘬"
+truncation_length = 12
+format = "󰜥 [$symbol $branch]($style) "
+
+[cmd_duration]
+min_time = 0
+# Simplified the duration format to prevent syntax errors
+format = "[󰪢 $duration](bold fg:9) "
+
+[character]
+success_symbol = "[ ](bold fg:2) "
+error_symbol = "[ ](bold fg:1) "
+
+[fill]
+symbol = '-'
+style = 'fg:9'
+
+[package]
+disabled = true
